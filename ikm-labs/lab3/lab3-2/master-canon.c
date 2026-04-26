@@ -11,7 +11,8 @@ int main ()
 	char sbuf;
 	char rbuf;
 	struct termios config;
-	//struct termios savedconfig;
+	struct termios savedconfig;
+
 	
 	// start the wiringPi library
 	if (wiringPiSetup () == -1)
@@ -29,25 +30,26 @@ int main ()
 
 	// TODO: open and configure serial port with 9600 baudrate
 
-	fd = open("/dev/serial0", O_RDWR | O_NOCTTY | O_NDELAY); // O_NDELAY mora biti iskljucen ako hocemo da se slikaju karakteri bez entera.
+	fd = open("/dev/serial0", O_RDWR | O_NOCTTY ); // O_NDELAY mora biti iskljucen ako hocemo da se slikaju karakteri bez entera.
 		if (fd < 0)
 			fprintf(stderr, "Failed to open serial port. Check if it is used by another device.\n");
 				
-	tcgetattr(fd, &config);
+	tcgetattr(0, &config);
+	tcgetattr(0, &savedconfig);
 	cfmakeraw(&config);
-	//stdio_config.c_lflag &=  ~(ECHO | ICANON); // ovo treba ako se hoce kanonski mod iskljuciti.
-	//stdio_config.c_cc[VMIN] = 1; // at least 1 char threshold
-	//stdio_config.c_cc[VTIME] = 0; //no delay
+	config.c_lflag &=  ~(ECHO | ICANON); // ovo treba ako se hoce kanonski mod iskljuciti.
+	config.c_cc[VMIN] = 1; // at least 1 char threshold
+	config.c_cc[VTIME] = 0; //no delay
 	cfsetispeed(&config, B9600);
 	cfsetospeed(&config, B9600);
-	tcsetattr(fd, TCSANOW, &config);
+	tcsetattr(0, TCSANOW, &config);
 	
 	while (1)
 	{
 		sbuf = getchar();
 		if (sbuf == 'q')
 		{ 
-			//tcsetattr(0, TCSANOW, &savedconfig);
+			tcsetattr(0, TCSANOW, &savedconfig);
 			close(fd);
 			return 0;
 		}
@@ -59,7 +61,7 @@ int main ()
 				
 				// TODO: send the entered byte
 				write(fd, &sbuf, 1);
-				tcdrain(fd);
+				tcdrain(0);
 				digitalWrite(3, LOW);
 				
 				usleep(50000);
@@ -70,10 +72,10 @@ int main ()
 		// TODO: read the received byte from serial port and display it in console
 		if (read(fd, &rbuf, 1) > 0)
 				{
-					printf("Primljeni char je: %c\n", rbuf);
+					printf("Primljeni char je: %c\n\r", rbuf);
 				}
 	}
-	//tcsetattr(0, TCSANOW, &savedconfig);
+	tcsetattr(0, TCSANOW, &savedconfig);
 	close(fd);	
 	return 0 ;
 }

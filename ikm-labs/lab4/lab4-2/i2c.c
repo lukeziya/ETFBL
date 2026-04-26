@@ -11,14 +11,14 @@
 #define DATAX0			0x32
 // I2C address of ADXL345
 #define ADXL345_I2C_ADDR	0x53
-
+#define POWER_CTL		0x2d
 int main()
 {
 	int fd;
 	// Register addresses:
 	// You can get the address of DEVID register from regs[0] and
 	// the address of DATAX0 register from regs[1]
-	unsigned char regs[] = {DEVID, DATAX0};
+	unsigned char regs[] = {DEVID, DATAX0,POWER_CTL,0x08};
 	unsigned char rx_buffer[6];
 	
 	// TODO: Initialize array of structures struct i2c_msg to define I2C messages
@@ -42,11 +42,17 @@ int main()
 		.buf = &regs[1],	/* register address */
 		.len = 1
 	},
-	[1] = {
+	[3] = {
 		.addr = ADXL345_I2C_ADDR,		/* slave address */
 		.flags = I2C_M_RD,	/* read access */
 		.buf = rx_buffer,	/* rx buffer */
 		.len = 6
+	},
+	[4] = {
+		.addr = ADXL345_I2C_ADDR,		/* slave address */
+		.flags = 0,	/* read access */
+		.buf = &regs[2],	/* rx buffer */
+		.len = 2
 	}
 	};
 
@@ -54,7 +60,8 @@ int main()
 	struct i2c_rdwr_ioctl_data msgset[] = {
 		// Add your code here
 		[0] = { .msgs = &iomsgs[0], .nmsgs = 2 },
-       		[1] = { .msgs = &iomsgs[2], .nmsgs = 2 }
+       		[1] = { .msgs = &iomsgs[2], .nmsgs = 2 },
+       		[2] = { .msgs = &iomsgs[4], .nmsgs = 1 }
 	};
 
 	// Try to open I2C device
@@ -68,6 +75,7 @@ int main()
 	}
 	
 	// TODO: Initiate a combined I2C transaction to obtain Device ID
+	ioctl(fd, I2C_RDWR, &msgset[2]);
 	ioctl(fd, I2C_RDWR, &msgset[0]);
 
 	// Print the obtained Device ID

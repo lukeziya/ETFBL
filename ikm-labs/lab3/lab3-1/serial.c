@@ -9,7 +9,7 @@ int main ()
 {
 	int fd;						// serial port file descriptor
 	struct termios config, old_stdin_config, target_stdin_config;		// configuration termios structure
-	unsigned char *sbuf = "Hello Serial!\n";	// send buffer initialized with some data
+	unsigned char *sbuf = "Hello Serial!\n\r";	// send buffer initialized with some data
 	int sbuf_len = strlen(sbuf);		// send buffer length
 	unsigned char rbuf;			// receive buffer
 	

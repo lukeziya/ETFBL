@@ -25,11 +25,13 @@ int main()
 		0x00, /* dummy byte sent when we receive data from ADXL345 */
 		// SPI Transaction 2: read acceleration from all three axes
 		DATAX0 | (1 << RW_BIT_POS) | (1 << MB_BIT_POS), /* command: multi byte (MB=1) read (R/W=1) starting from DATAX0 register */
-		0x00, 0x00, 0x00, 0x00, 0x00, 0x00 /* 6 dummy bytes sent while we are receiving 6 bytes from ADXL345 (2 bytes per axis) */
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* 6 dummy bytes sent while we are receiving 6 bytes from ADXL345 (2 bytes per axis) */
+		0X2d,
+		0x08,
 	};
 	
 	// TODO: Initialize the spi_ioc_transfer structure array
-	struct spi_ioc_transfer spi[2] = {
+	struct spi_ioc_transfer spi[3] = {
 		// Add your code here
 		[0] = {
 			.tx_buf = (unsigned long)&tx_buffer[0],
@@ -42,6 +44,10 @@ int main()
 			.rx_buf = (unsigned long)&rx_buffer[0],
 			.len = 7, //komanda + 6 bajtova podataka
 			.delay_usecs = 0,
+		},
+		[2] = {
+			.tx_buf = (unsigned long)&tx_buffer[9],
+			.len = 2,
 		}
 		
 	};
@@ -67,6 +73,7 @@ int main()
 	// TODO: Initiate an SPI transaction to obtain Device ID
 
 	ioctl(fd, SPI_IOC_MESSAGE(1), &spi[0]); 
+	ioctl(fd, SPI_IOC_MESSAGE(1), &spi[2]);
 	
 	// Print the obtained Device ID
 	printf("Device ID is 0x%x.\n", rx_buffer[1]);
