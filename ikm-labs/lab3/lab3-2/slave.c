@@ -36,6 +36,8 @@ int main ()
 	tcgetattr(0, &config);
 	config.c_cc[VMIN] = 1; // at least 1 char threshold
 	config.c_cc[VTIME] = 0; //no delay
+	cfsetispeed(&config, B9600);
+	cfsetospeed(&config, B9600);
 	tcsetattr(0, TCSANOW, &config);
 	
 

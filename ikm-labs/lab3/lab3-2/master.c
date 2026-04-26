@@ -38,6 +38,8 @@ int main ()
 	stdio_config.c_lflag &=  ~(ECHO | ICANON); // ovo treba ako se hoce kanonski mod iskljuciti.
 	stdio_config.c_cc[VMIN] = 1; // at least 1 char threshold
 	stdio_config.c_cc[VTIME] = 0; //no delay
+	cfsetispeed(&stdio_config, B9600);
+	cfsetospeed(&stdio_config, B9600);
 	tcsetattr(0, TCSANOW, &stdio_config);
 	
 	while (1)
