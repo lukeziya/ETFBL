@@ -14,7 +14,7 @@ int main ()
 	unsigned char rbuf;			// receive buffer
 	
 	// TODO: open serial port and check for errors while opening
-	fd = open("dev/ttyAMA0", O_RDWR | O_NOCTTY | O_NDELAY);
+	fd = open("/dev/ttyAMA0", O_RDWR | O_NOCTTY | O_NDELAY);
 	if (fd < 0)
 		fprintf(stderr, "Failed to open serial port. Check if it is used by another device.\n");
 		
