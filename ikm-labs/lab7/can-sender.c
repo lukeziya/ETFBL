@@ -20,11 +20,10 @@ int main()
 	memset(&addr, 0, sizeof(addr));
 	memset(&frame, 0, sizeof(frame));
 	
-	// TODO: Open a socket here
-	
+	/* TODO: Open a socket here */
 	s = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 	if (s < 0) {
-		perror("Socket opening failed");
+		perror("socket");
 		return 1;
 	}
 	
@@ -39,25 +38,50 @@ int main()
 	/* Disable reception filter on this RAW socket */
 	setsockopt(s, SOL_CAN_RAW, CAN_RAW_FILTER, NULL, 0);
 	
-	// TODO: Bind socket to can0 interface
-	
+	/* TODO: Bind socket to can0 interface */
 	if (bind(s, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-		perror("Bind failed");
+		perror("bind");
+		close(s);
 		return 1;
 	}
-	
-	// TODO: Fill frame info and send
-	
-	frame.can_id = 0x34;
+
+	/* TODO: Fill frame info and send */
+
+	/* --- Frame 1: ID=0x034, data="hello" (5 bytes) --- */
+	frame.can_id  = 0x034;
 	frame.can_dlc = 5;
-	memcpy(frame.data, "hello", 5);
-	write(s, &frame, sizeof(struct can_frame));
-	
-	frame.can_id = 0x123456 | CAN_EFF_FLAG;
+	frame.data[0] = 'h';
+	frame.data[1] = 'e';
+	frame.data[2] = 'l';
+	frame.data[3] = 'l';
+	frame.data[4] = 'o';
+
+	if (write(s, &frame, sizeof(frame)) != sizeof(frame)) {
+		perror("write frame 1");
+		close(s);
+		return 1;
+	}
+	printf("Sent frame 1: ID=0x%03X DLC=%d data=\"hello\"\n",
+	       frame.can_id, frame.can_dlc);
+
+	/* --- Frame 2: ID=0x123456 (extended 29-bit), data="world" (5 bytes) --- */
+	memset(&frame, 0, sizeof(frame));
+	frame.can_id  = 0x123456 | CAN_EFF_FLAG;  /* set EFF flag for 29-bit ID */
 	frame.can_dlc = 5;
-	memcpy(frame.data, "world", 5);
-	write(s, &frame, sizeof(struct can_frame));
-	
+	frame.data[0] = 'w';
+	frame.data[1] = 'o';
+	frame.data[2] = 'r';
+	frame.data[3] = 'l';
+	frame.data[4] = 'd';
+
+	if (write(s, &frame, sizeof(frame)) != sizeof(frame)) {
+		perror("write frame 2");
+		close(s);
+		return 1;
+	}
+	printf("Sent frame 2: ID=0x%08X DLC=%d data=\"world\"\n",
+	       frame.can_id & CAN_EFF_MASK, frame.can_dlc);
+
 	close(s);
 	
 	return 0;
